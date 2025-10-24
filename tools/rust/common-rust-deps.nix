@@ -1,12 +1,14 @@
 { pkgs, lib, ... }:
 
 let
-  commonBuildInputs = [
-    pkgs.pkg-config
-    pkgs.openssl
-  ] ++ (lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.apple_sdk.frameworks.Security ]);
+  opensslDeps = import ./openssl-deps.nix { inherit pkgs lib; };
+  inherit (opensslDeps) opensslBuildInputs opensslPkgConfigPath;
 
-  pkgConfigPath = "${pkgs.openssl.dev}/lib/pkgconfig";
+  commonBuildInputs = opensslBuildInputs ++ [
+    pkgs.pkg-config
+  ];
+
+  pkgConfigPath = opensslPkgConfigPath;
 
 in
 {

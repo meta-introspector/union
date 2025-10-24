@@ -1,3 +1,89 @@
+# Reusable Rust Dependencies for Nix
+
+This directory contains Nix files designed to provide reusable definitions for common Rust-related dependencies and configurations.
+
+## `openssl-deps.nix`
+
+This file provides a granular, reusable module specifically for integrating OpenSSL dependencies into your Rust projects. It encapsulates the necessary `buildInputs` and `PKG_CONFIG_PATH` configuration for OpenSSL.
+
+### Usage:
+
+To use `openssl-deps.nix` in your Nix flake or derivation:
+
+1.  **Import the file:**
+    ```nix
+    # In your flake.nix or a module
+    let
+      # Assuming 'pkgs' and 'lib' are in scope from your Nixpkgs import
+      opensslDeps = import ./tools/rust/openssl-deps.nix { inherit pkgs lib; };
+      inherit (opensslDeps) opensslBuildInputs opensslPkgConfigPath;
+    in
+    # ...
+    ```
+
+2.  **Integrate into `buildInputs`:**
+    Add `opensslBuildInputs` to your derivation's `buildInputs`.
+
+    **Example:**
+    ```nix
+    buildInputs = opensslBuildInputs ++ [
+      # other build inputs specific to your project
+      pkgs.some-other-dependency
+    ];
+    ```
+
+3.  **Set `PKG_CONFIG_PATH`:**
+    Use `opensslPkgConfigPath` for setting the `PKG_CONFIG_PATH` environment variable.
+
+    **Example:**
+    ```nix
+    PKG_CONFIG_PATH = opensslPkgConfigPath;
+    ```
+
+---
+
+## `common-rust-deps.nix` (Updated)
+
+This file exports an attribute set containing common build inputs and environment variables related to `openssl` and `pkg-config`, now leveraging `openssl-deps.nix` for better modularity.
+
+### Usage:
+
+To use `common-rust-deps.nix` in your Nix flake or derivation:
+
+1.  **Import the file:**
+    ```nix
+    # In your flake.nix or a module
+    let
+      # Assuming 'pkgs' and 'lib' are in scope from your Nixpkgs import
+      commonRustDeps = import ./tools/rust/common-rust-deps.nix { inherit pkgs lib; };
+      inherit (commonRustDeps) commonBuildInputs pkgConfigPath;
+    in
+    # ...
+    ```
+
+2.  **Integrate into `buildInputs`:**
+    Replace explicit `pkgs.pkg-config`, `pkgs.openssl`, and the conditional Darwin security framework with `commonBuildInputs`.
+
+    **Example:**
+    ```nix
+    buildInputs = commonBuildInputs ++ [
+      # other build inputs specific to your project
+      pkgs.some-other-dependency
+    ];
+    ```
+
+3.  **Set `PKG_CONFIG_PATH`:**
+    Use `pkgConfigPath` for setting the `PKG_CONFIG_PATH` environment variable.
+
+    **Example:**
+    ```nix
+    PKG_CONFIG_PATH = pkgConfigPath;
+    ```
+
+This approach centralizes the management of these common dependencies, making your Nix expressions cleaner and more maintainable across different Rust projects.
+
+---
+
 ## `crane-lattice.nix`
 
 This file provides a refactored and modularized version of the original `crane.nix` functionality, composed from smaller, logically grouped Nix modules. It aims to improve readability, maintainability, and reusability of the Rust build definitions.
